@@ -19,50 +19,103 @@ package edu.siu.cs425.medianstringapachebeam;
 
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.TextIO;
+import org.apache.beam.sdk.options.Default;
+import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
+import org.apache.beam.sdk.options.Validation.Required;
+import org.apache.beam.sdk.transforms.Combine;
+import org.apache.beam.sdk.transforms.Combine.CombineFn;
 import org.apache.beam.sdk.transforms.GroupByKey;
+import org.apache.beam.sdk.transforms.MapElements;
+import org.apache.beam.sdk.transforms.Min;
 import org.apache.beam.sdk.transforms.ParDo;
+import org.apache.beam.sdk.transforms.SerializableFunction;
+import org.apache.beam.sdk.transforms.SimpleFunction;
+import org.apache.beam.sdk.values.KV;
+import org.apache.beam.sdk.values.PCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 /**
  * A starter example for writing Beam programs.
  *
- * <p>The example takes two strings, converts them to their upper-case
+ * <p>
+ * The example takes two strings, converts them to their upper-case
  * representation and logs them.
  *
- * <p>To run this starter example locally using DirectRunner, just
- * execute it without any additional parameters from your favorite development
- * environment.
+ * <p>
+ * To run this starter example locally using DirectRunner, just execute it
+ * without any additional parameters from your favorite development environment.
  *
- * <p>To run this starter example using managed resource in Google Cloud
- * Platform, you should specify the following command-line options:
- *   --project=<YOUR_PROJECT_ID>
- *   --stagingLocation=<STAGING_LOCATION_IN_CLOUD_STORAGE>
- *   --runner=DataflowRunner
+ * <p>
+ * To run this starter example using managed resource in Google Cloud Platform,
+ * you should specify the following command-line options:
+ * --project=<YOUR_PROJECT_ID>
+ * --stagingLocation=<STAGING_LOCATION_IN_CLOUD_STORAGE> --runner=DataflowRunner
  */
+
 public class StarterPipeline {
-  private static final Logger LOG = LoggerFactory.getLogger(StarterPipeline.class);
 
-  public static void main(String[] args) {
-	  // Create a PipelineOptions object. This object lets us set various execution
-	  // options for our pipeline, such as the runner you wish to use. This example
-	  // will run with the DirectRunner by default, based on the class path configured
-	  // in its dependencies.
-	  PipelineOptions options = PipelineOptionsFactory.create();
-	  Pipeline p = Pipeline.create(options);
-	  
-	  // Read from the local storage
-	  p.apply(TextIO.read().from("/home/tumesh/median-string-apache-beam/medianstringapachebeam/src/main/resources/promoters_data_clean.txt"))
-	  	.apply("Linecandidatefunction",ParDo.of(new LineCandidatePardoFunction()))
-	  	.apply("Grouping Target Motifs for each line", GroupByKey.<String, Integer>create())
-	  	.apply("Find Best", ParDo.of(new BestMotifPardoFunction()));
-//	  	.apply(TextIO.write().to("/home/tumesh/median-string-apache-beam/medianstringapachebeam/src/main/resources/output"));
-	    
+	public interface MedianStringRunnerOptions extends PipelineOptions {
 
-	  p.run();
+		/**
+		 * By default, this example reads from a public dataset containing the text of
+		 * King Lear. Set this option to choose a different input file or glob.
+		 */
+		@Description("Path of the file to read from")
+		@Default.String("/home/utimalsina/workspace/medianstringapachebeam/src/main/resources/promoters_data_clean.txt")
+		String getInputFile();
 
-	  
-  }
+		void setInputFile(String value);
+
+		/** Set this required option to specify where to write the output. */
+		@Description("Path of the file to write to")
+		@Required
+		@Default.String("/home/utimalsina/workspace/medianstringapachebeam/src/main/resources/output.txt")
+		String getOutput();
+
+		void setOutput(String value);
+	}
+
+	private static final Logger LOG = LoggerFactory.getLogger(StarterPipeline.class);
+
+	public static void main(String[] args) {
+		// Create a PipelineOptions object. This object lets us set various execution
+		// options for our pipeline, such as the runner you wish to use. This example
+		// will run with the DirectRunner by default, based on the class path configured
+		// in its dependencies.
+		MedianStringRunnerOptions options =
+		        PipelineOptionsFactory.fromArgs(args).withValidation().as(MedianStringRunnerOptions.class);
+
+		runMedianStringPipeline(options);
+	}
+	
+	private static void runMedianStringPipeline(MedianStringRunnerOptions options) {
+		Pipeline p = Pipeline.create(options);
+
+		// Read from the local storage
+		PCollection<KV<String, Integer>> combinedMotifKeys = p.apply(TextIO.read().from(options.getInputFile()))
+				.apply("Linecandidatefunction", ParDo.of(new LineCandidatePardoFunction()))
+				.apply("Find Consensus", Combine.perKey(new SumDistances()));
+
+//	  	.apply("Find minimum", Min.doublesGlobally());
+		PCollection<KV<String, Integer>> output = combinedMotifKeys.apply("Find Best", Combine
+				.<KV<String, Integer>, KV<String, Integer>>globally(new BestMotifFinderTry2()).withoutDefaults());
+		
+		output.apply(MapElements.via(new FormatAsTextFn()))
+        .apply("WriteCounts", TextIO.write().to(options.getOutput()));
+		
+
+		p.run().waitUntilFinish();
+
+	}
+	
+	public static class FormatAsTextFn extends SimpleFunction<KV<String, Integer>, String> {
+	    @Override
+	    public String apply(KV<String, Integer> input) {
+	      return input.getKey() + ": " + input.getValue();
+	    }
+	  }
 }

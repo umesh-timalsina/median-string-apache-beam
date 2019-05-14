@@ -9,12 +9,23 @@ import org.apache.beam.sdk.transforms.DoFn.ProcessElement;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 
-public class BestMotifPardoFunction extends DoFn<PCollection<KV<String, Iterable<Integer>>>, String>{
-
+public class BestMotifPardoFunction extends DoFn<KV<String, Iterable<Integer>>,KV<String,Integer>> {
 
 	private static final long serialVersionUID = 1L;
-	
-	public void processElement(@Element PCollection<KV<String, Iterable<Integer>>> key, OutputReceiver<String> value) {
-//		System.out.println(key.get
+
+	@ProcessElement
+	public void processElement(ProcessContext c) {
+		
+		Integer total = 0;
+		Iterable<Integer> result = c.element().getValue();
+		
+		for (Integer s : result) {
+			total += s;
+			
+		}
+		
+		c.output(KV.of(c.element().getKey(), total));
+
 	}
+
 }

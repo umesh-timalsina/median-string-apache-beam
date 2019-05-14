@@ -23,11 +23,10 @@
   <groupId>edu.siu.cs425</groupId>
   <artifactId>medianstringapachebeam</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-
-  <packaging>jar</packaging>
+<packaging>jar</packaging>
 
   <properties>
-    <beam.version>2.11.0</beam.version>
+    <beam.version>2.5.0</beam.version>
 
     <bigquery.version>v2-rev20181104-1.27.0</bigquery.version>
     <google-clients.version>1.27.0</google-clients.version>

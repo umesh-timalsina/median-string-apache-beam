@@ -2,7 +2,6 @@ package edu.siu.cs425.medianstringapachebeam;
 
 import java.util.List;
 
-import org.apache.beam.model.pipeline.v1.RunnerApi.PCollection;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
 import org.slf4j.Logger;
@@ -15,7 +14,8 @@ public class LineCandidatePardoFunction extends DoFn<String, KV<String, Integer>
 	private static final List<String> allPossibleSequences = TargetMotifGenerator.generateTargetMotifs(8);
 	private static int count=0;
 	@ProcessElement
-	public void processElement(@Element String line, OutputReceiver<KV<String, Integer>> out) {
+	public void processElement(ProcessContext c) {
+		String line = c.element();
 		int TARGET_LENGTH = 8;
 		count++;
 		for (String targetMotif : TargetMotifGenerator.allPossibleSequences) {
@@ -40,7 +40,8 @@ public class LineCandidatePardoFunction extends DoFn<String, KV<String, Integer>
 				}
 			}
 //			logger.info("line: " + count + "-" + targetMotif + "-" + bestDistance);
-			out.output(KV.of(targetMotif, bestDistance));
+//			out.output(KV.of(targetMotif, bestDistance));
+			c.output(KV.of(targetMotif, bestDistance));
 		}
 		
 

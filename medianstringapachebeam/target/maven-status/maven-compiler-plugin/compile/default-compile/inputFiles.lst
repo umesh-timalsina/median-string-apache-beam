@@ -1,3 +1,7 @@
-/home/tumesh/median-string-apache-beam/medianstringapachebeam/src/main/java/edu/siu/cs425/medianstringapachebeam/StarterPipeline.java
-/home/tumesh/median-string-apache-beam/medianstringapachebeam/src/main/java/edu/siu/cs425/medianstringapachebeam/LineCandidatePardoFunction.java
-/home/tumesh/median-string-apache-beam/medianstringapachebeam/src/main/java/edu/siu/cs425/medianstringapachebeam/TargetMotifGenerator.java
+/home/utimalsina/workspace/medianstringapachebeam/src/main/java/edu/siu/cs425/medianstringapachebeam/BestMotifFinderTry2.java
+/home/utimalsina/workspace/medianstringapachebeam/src/main/java/edu/siu/cs425/medianstringapachebeam/BestMotifPardoFunction.java
+/home/utimalsina/workspace/medianstringapachebeam/src/main/java/edu/siu/cs425/medianstringapachebeam/BestMotifFinder.java
+/home/utimalsina/workspace/medianstringapachebeam/src/main/java/edu/siu/cs425/medianstringapachebeam/StarterPipeline.java
+/home/utimalsina/workspace/medianstringapachebeam/src/main/java/edu/siu/cs425/medianstringapachebeam/SumDistances.java
+/home/utimalsina/workspace/medianstringapachebeam/src/main/java/edu/siu/cs425/medianstringapachebeam/LineCandidatePardoFunction.java
+/home/utimalsina/workspace/medianstringapachebeam/src/main/java/edu/siu/cs425/medianstringapachebeam/TargetMotifGenerator.java
